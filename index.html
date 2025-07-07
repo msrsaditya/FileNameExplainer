@@ -11,7 +11,6 @@
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
         }
-
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -22,7 +21,6 @@
                 transform: translateY(0);
             }
         }
-
         .fade-in {
             animation: fadeIn 0.5s ease-out forwards;
         }
@@ -157,10 +155,10 @@
                     { notation: 'REMASTERED', meaning: 'Indicates the film has been digitally restored or enhanced' },
                     { notation: 'IMAX', meaning: 'A version of the film that includes scenes presented in the taller IMAX aspect ratio' },
                     { notation: 'HYBRID', meaning: 'A custom release created by combining the best available elements from different sources' },
-                    { notation: 'SE', meaning: 'Special Edition.' },
-                    { notation: 'CE', meaning: 'Collector\'s Edition.' },
-                    { notation: 'UE', meaning: 'Ultimate Edition.' },
-                    { notation: 'AE', meaning: 'Anniversary Edition.' },
+                    { notation: 'SE', meaning: 'Special Edition' },
+                    { notation: 'CE', meaning: 'Collector\'s Edition' },
+                    { notation: 'UE', meaning: 'Ultimate Edition' },
+                    { notation: 'AE', meaning: 'Anniversary Edition' },
                     { notation: 'FS', meaning: 'Fullscreen: The video is formatted for older 4:3 aspect ratio screens' },
                     { notation: 'WS', meaning: 'Widescreen: The video is presented in its original theatrical aspect ratio' },
                     { notation: 'OAR', meaning: 'Original Aspect Ratio: The film is presented in the exact aspect ratio it was framed and shot for' },
@@ -414,7 +412,6 @@
                 ]
             }
         ];
-
         const masterTermList = dataDictionaries.flatMap(dict =>
             dict.terms.flatMap(term =>
                 (term.labels || [term.notation]).map(label => ({
@@ -425,25 +422,21 @@
                 }))
             )
         ).sort((a, b) => b.label.length - a.label.length);
-
         const analyzeBtn = document.getElementById('analyzeBtn');
         const input = document.getElementById('fileNameInput');
         const resultsContainer = document.getElementById('resultsContainer');
-
         analyzeBtn.addEventListener('click', analyzeFileName);
         input.addEventListener('keyup', (event) => {
             if (event.key === 'Enter') {
                 analyzeFileName();
             }
         });
-
         function analyzeFileName() {
             const originalFileName = input.value;
             if (!originalFileName.trim()) {
                 resultsContainer.innerHTML = `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md shadow" role="alert"><p class="font-bold">Please enter a file name to analyze.</p></div>`;
                 return;
             }
-
             let releaseGroup = '';
             let fileName = originalFileName;
             const groupMatch = fileName.match(/-([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])$/);
@@ -451,12 +444,10 @@
                 releaseGroup = groupMatch[1];
                 fileName = fileName.replace(groupMatch[0], '');
             }
-
             let cleanedFileName = fileName.replace(/[._\[\]()]/g, ' ').replace(/\s+/g, ' ').trim();
             let tokens = cleanedFileName.split(' ');
             let results = [];
             let i = 0;
-
             while (i < tokens.length) {
                 let matched = false;
                 for (let j = 4; j >= 1; j--) {
@@ -464,14 +455,13 @@
                     let phrase = tokens.slice(i, i + j).join(' ');
                     let term = masterTermList.find(t => t.label === phrase.toUpperCase());
                     if (term) {
-                        results.push({ term, component: phrase });
+                        results.push({ ...term, component: phrase });
                         i += j;
                         matched = true;
                         break;
                     }
                 }
                 if (matched) continue;
-
                 let token = tokens[i];
                 let meaning = '';
                 const year = parseInt(token);
@@ -488,7 +478,6 @@
                     const match = token.toUpperCase().match(/^(\d{1,3})x(\d{1,3})$/);
                     meaning = `Season ${parseInt(match[1], 10)}, Episode ${parseInt(match[2], 10)}`;
                 }
-
                 if (meaning) {
                     results.push({ component: token, type: 'Heuristic', meaning: meaning });
                 } else {
@@ -496,27 +485,21 @@
                 }
                 i++;
             }
-
             if (releaseGroup) {
                 results.push({ component: releaseGroup, type: 'Release Group', meaning: 'The group that released the file.' });
             }
-
             displayResults(results, originalFileName);
         }
-
         function displayResults(results, originalName) {
             resultsContainer.innerHTML = '';
             const filteredResults = results.filter(res => res.type !== 'Title / Other');
-
             if (filteredResults.length === 0) {
                 resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-md fade-in"><h2 class="text-2xl font-bold mb-4 text-gray-800">No specific components found</h2><p>Could not identify any special tags in "<strong>${originalName}</strong>". This is likely the title.</p></div>`;
                 return;
             }
-
             const resultsEl = document.createElement('div');
             resultsEl.className = 'bg-white p-6 rounded-xl shadow-lg fade-in';
             resultsEl.innerHTML = `<div class="mb-5 p-4 bg-gray-50 rounded-lg border border-gray-200"><p class="text-sm text-gray-600">Analysis for:</p><p class="text-lg font-mono text-gray-800 break-all mt-1">${originalName}</p></div>`;
-
             const tableContainer = document.createElement('div');
             tableContainer.className = 'overflow-x-auto';
             const table = document.createElement('table');
@@ -530,7 +513,6 @@
                     </tr>
                 </thead>
             `;
-
             const tbody = document.createElement('tbody');
             filteredResults.forEach(res => {
                 const row = document.createElement('tr');
@@ -542,7 +524,6 @@
                 `;
                 tbody.appendChild(row);
             });
-
             table.appendChild(tbody);
             tableContainer.appendChild(table);
             resultsEl.appendChild(tableContainer);
