@@ -412,12 +412,32 @@
                 ]
             }
         ];
+        const qualityHierarchy = [
+            { type: 'Cam', label: 'CAM', score: 10 },
+            { type: 'Telesync', label: 'TS', score: 20 },
+            { type: 'Workprint', label: 'WP', score: 30 },
+            { type: 'Telecine', label: 'TC', score: 40 },
+            { type: 'Pay-Per-View Rip', label: 'PPV', score: 50 },
+            { type: 'Screener', label: 'SCR', score: 60 },
+            { type: 'R5', label: 'R5', score: 65 },
+            { type: 'WEBCap', label: 'WEB-Cap', score: 70 },
+            { type: 'HDTV/PDTV/DSRip', label: 'HDTV', score: 75 },
+            { type: 'VODRip', label: 'VOD', score: 80 },
+            { type: 'DVD-Rip', label: 'DVD', score: 85 },
+            { type: 'WEBRip', label: 'WEBRip', score: 90 },
+            { type: 'WEB-DL', label: 'WEB-DL', score: 100 },
+            { type: 'Digital Distribution Copy', label: 'DDC', score: 105 },
+            { type: 'Blu-ray/BD/BRRip', label: 'Blu-ray', score: 110 },
+            { type: 'UHD Blu-ray', label: 'UHD', score: 120 },
+            { type: 'UHDRemux', label: 'Remux', score: 130 }
+        ];
         const masterTermList = dataDictionaries.flatMap(dict =>
             dict.terms.flatMap(term =>
                 (term.labels || [term.notation]).map(label => ({
                     label: label.toUpperCase(),
                     component: label,
-                    type: dict.category,
+                    type: term.type || dict.category,
+                    category: dict.category,
                     meaning: term.meaning || term.description || `Source: ${term.source}`
                 }))
             )
@@ -479,20 +499,59 @@
                     meaning = `Season ${parseInt(match[1], 10)}, Episode ${parseInt(match[2], 10)}`;
                 }
                 if (meaning) {
-                    results.push({ component: token, type: 'Heuristic', meaning: meaning });
+                    results.push({ component: token, type: 'Heuristic', category: 'Heuristic', meaning: meaning });
                 } else {
-                    results.push({ component: token, type: 'Title / Other', meaning: 'Part of the title or an unrecognized tag.' });
+                    results.push({ component: token, type: 'Title / Other', category: 'Title / Other', meaning: 'Part of the title or an unrecognized tag.' });
                 }
                 i++;
             }
             if (releaseGroup) {
-                results.push({ component: releaseGroup, type: 'Release Group', meaning: 'The group that released the file.' });
+                results.push({ component: releaseGroup, type: 'Release Group', category: 'Release Group', meaning: 'The group that released the file.' });
             }
             displayResults(results, originalFileName);
         }
+        function createQualityScaleElement(foundFormat) {
+            const formatType = foundFormat.type;
+            const currentIndex = qualityHierarchy.findIndex(q => q.type === formatType);
+            if (currentIndex === -1) {
+                console.warn("Could not find format in quality hierarchy:", formatType);
+                return null;
+            }
+            const container = document.createElement('div');
+            container.className = 'mt-8 bg-white p-4 sm:p-6 rounded-xl shadow-lg fade-in';
+            container.innerHTML = `<h3 class="text-xl font-bold mb-5 text-gray-800">Video Quality Scale</h3>`;
+            const scaleContainer = document.createElement('div');
+            scaleContainer.className = 'w-full';
+            const scaleBar = document.createElement('div');
+            scaleBar.className = 'flex flex-wrap gap-1 w-full';
+            qualityHierarchy.forEach((quality, index) => {
+                const item = document.createElement('div');
+                item.className = 'h-8 rounded relative group flex items-center justify-center transition-all duration-300 flex-grow min-w-[1.25rem]';
+                if (index <= currentIndex) {
+                    item.classList.add('bg-indigo-500');
+                } else {
+                    item.classList.add('bg-gray-300');
+                }
+                if (index === currentIndex) {
+                    item.classList.add('ring-2', 'ring-offset-2', 'ring-indigo-500', 'scale-110', 'z-10');
+                }
+                const tooltip = document.createElement('div');
+                tooltip.className = 'absolute bottom-full mb-2 min-w-max px-2 py-1 text-xs text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20';
+                tooltip.textContent = quality.type;
+                item.appendChild(tooltip);
+                scaleBar.appendChild(item);
+            });
+            scaleContainer.appendChild(scaleBar);
+            const labelsWrapper = document.createElement('div');
+            labelsWrapper.className = 'flex justify-between text-xs text-gray-500 mt-2 px-1';
+            labelsWrapper.innerHTML = `<span>Low</span><span>High</span>`;
+            scaleContainer.appendChild(labelsWrapper);
+            container.appendChild(scaleContainer);
+            return container;
+        }
         function displayResults(results, originalName) {
             resultsContainer.innerHTML = '';
-            const filteredResults = results.filter(res => res.type !== 'Title / Other');
+            const filteredResults = results.filter(res => res.category !== 'Title / Other');
             if (filteredResults.length === 0) {
                 resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-md fade-in"><h2 class="text-2xl font-bold mb-4 text-gray-800">No specific components found</h2><p>Could not identify any special tags in "<strong>${originalName}</strong>". This is likely the title.</p></div>`;
                 return;
@@ -519,7 +578,7 @@
                 row.className = 'border-b border-gray-200 hover:bg-gray-50';
                 row.innerHTML = `
                     <td class="p-3 font-mono text-indigo-600">${res.component}</td>
-                    <td class="p-3 text-gray-800 font-medium">${res.type}</td>
+                    <td class="p-3 text-gray-800 font-medium">${res.category}</td>
                     <td class="p-3 text-gray-600">${res.meaning}</td>
                 `;
                 tbody.appendChild(row);
@@ -528,6 +587,18 @@
             tableContainer.appendChild(table);
             resultsEl.appendChild(tableContainer);
             resultsContainer.appendChild(resultsEl);
+            const releaseFormatResults = results.filter(res => res.category === 'Release Format');
+            if (releaseFormatResults.length > 0) {
+                let bestFormatResult = releaseFormatResults.reduce((best, current) => {
+                    const bestScore = (qualityHierarchy.find(q => q.type === best.type) || { score: 0 }).score;
+                    const currentScore = (qualityHierarchy.find(q => q.type === current.type) || { score: 0 }).score;
+                    return currentScore > bestScore ? current : best;
+                });
+                const qualityScaleEl = createQualityScaleElement(bestFormatResult);
+                if (qualityScaleEl) {
+                    resultsContainer.appendChild(qualityScaleEl);
+                }
+            }
         }
     </script>
 </body>
