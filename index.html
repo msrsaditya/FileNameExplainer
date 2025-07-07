@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏴‍☠️ File Name Explainer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="text-gray-900">
+    <div class="container mx-auto p-4 sm:p-6 md:p-8 max-w-6xl">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-900">🏴‍☠️ File Name Explainer</h1>
+        </header>
+        <main>
+            <div class="bg-white p-6 rounded-xl shadow-lg ring-1 ring-gray-200">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input
+                        type="text"
+                        id="fileNameInput"
+                        class="flex-grow w-full px-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition"
+                        placeholder="Enter any file name..."
+                    >
+                    <button
+                        id="analyzeBtn"
+                        class="w-full sm:w-auto bg-indigo-600 text-white font-bold text-lg px-8 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105"
+                    >
+                        Analyze
+                    </button>
+                </div>
+            </div>
+            <div id="resultsContainer" class="mt-8"></div>
+        </main>
+    </div>
+    <script>
+        const dataDictionaries = [
+            {
+                category: 'Release Format',
+                terms: [
+                    {
+                        type: 'Cam',
+                        labels: ['CAM-Rip', 'CAM', 'HDCAM'],
+                        description: 'A recording made in a cinema using a camera or smartphone...'
+                    },
+                    {
+                        type: 'Telesync',
+                        labels: ['TS', 'HDTS', 'TELESYNC', 'PDVD', 'PreDVDRip'],
+                        description: 'A video recorded by a camera in a cinema...'
+                    },
+                    {
+                        type: 'Workprint',
+                        labels: ['WP', 'WORKPRINT'],
+                        description: 'An unfinished version of a film leaked from the production studio...'
+                    },
+                    {
+                        type: 'Telecine',
+                        labels: ['TC', 'HDTC', 'TELECINE'],
+                        description: 'A copy made by transferring a physical film print to a digital format...'
+                    },
+                    {
+                        type: 'Pay-Per-View Rip',
+                        labels: ['PPV', 'PPVRip'],
+                        description: 'A recording captured from a Pay-Per-View (PPV) broadcast...'
+                    },
+                    {
+                        type: 'Screener',
+                        labels: ['SCR', 'SCREENER', 'DVDSCR', 'DVDSCREENER', 'BDSCR', 'WEBSCR'],
+                        description: 'A promotional copy sent to critics or award voters...'
+                    },
+                    {
+                        type: 'Digital Distribution Copy',
+                        labels: ['DDC'],
+                        description: 'A copy sourced from a Digital Cinema Package (DCP)...'
+                    },
+                    {
+                        type: 'R5',
+                        labels: ['R5', 'R5.LINE', 'R5.AC3.5.1.HQ'],
+                        description: 'A retail DVD from Region 5...'
+                    },
+                    {
+                        type: 'DVD-Rip',
+                        labels: ['DVDRip', 'DVDMux', 'DVDR', 'DVD-Full', 'Full-Rip', 'ISO', 'DVD-5', 'DVD-9', 'DVD-R'],
+                        description: 'A final retail version of a film, ripped from a DVD...'
+                    },
+                    {
+                        type: 'HDTV/PDTV/DSRip',
+                        labels: ['DSR', 'DSRip', 'SATRip', 'DTHRip', 'DVBRip', 'HDTV', 'PDTV', 'DTVRip', 'TVRip', 'HDTVRip'],
+                        description: 'A recording captured from a television broadcast...'
+                    },
+                    {
+                        type: 'VODRip',
+                        labels: ['VODRip', 'VODR'],
+                        description: 'A recording captured from a Video on Demand (VOD) service...'
+                    },
+                    {
+                        type: 'WEBCap',
+                        labels: ['WEB-Cap', 'WEBCAP', 'WEB Cap'],
+                        description: 'A capture from a streaming service using screen recording software...'
+                    },
+                    {
+                        type: 'WEBRip',
+                        labels: ['WEBRip', 'WEB Rip', 'WEB-Rip', 'HDRip'],
+                        description: 'Video is captured from a streaming service but is then re-encoded...'
+                    },
+                    {
+                        type: 'WEB-DL',
+                        labels: ['WEBDL', 'WEB DL', 'WEB-DL', 'WEB'],
+                        description: 'A direct, untouched file downloaded from a web-based distribution service...'
+                    },
+                    {
+                        type: 'Blu-ray/BD/BRRip',
+                        labels: ['Blu-Ray', 'BluRay', 'BLURAY', 'BDRip', 'BRip', 'BRRip', 'BDR', 'BD25', 'BD50', 'BD66', 'BD100', 'BDMV', 'BDISO', 'COMPLETE.BLURAY', 'Full-Bluray'],
+                        description: 'A video file ripped from a Blu-ray disc...'
+                    },
+                    {
+                        type: 'UHD Blu-ray',
+                        labels: ['UHD', 'UHD-BluRay', '4K-BluRay', 'UHD BLURAY'],
+                        description: 'A rip from a 4K Ultra HD Blu-ray disc...'
+                    },
+                    {
+                        type: 'UHDRemux',
+                        labels: ['UHDRemux'],
+                        description: 'An Ultra HD Blu-ray remux contains the original, untouched video and audio streams...'
+                    }
+                ]
+            },
+            {
+                category: 'Edition/Version',
+                terms: [
+                    { notation: 'THEATRICAL', meaning: 'The original version of the film exactly as it was shown in movie theaters...' },
+                    { notation: 'DC', meaning: 'Director\'s Cut: A version of the film edited to reflect the director\'s personal vision...' },
+                    { notation: 'DIRECTORS CUT', meaning: 'Director\'s Cut: A version of the film edited to reflect the director\'s personal vision...' },
+                    { notation: 'EXTENDED', meaning: 'An extended version of the film that includes additional scenes...' },
+                    { notation: 'UNRATED', meaning: 'A version of the film that has not been submitted for a rating...' },
+                    { notation: 'UNCUT', meaning: 'A version of the film that restores scenes that were removed for rating purposes...' },
+                    { notation: 'REMASTERED', meaning: 'Indicates the film has been digitally restored or enhanced...' },
+                    { notation: 'IMAX', meaning: 'A version of the film that includes scenes presented in the taller IMAX aspect ratio...' },
+                    { notation: 'HYBRID', meaning: 'A custom release created by combining the best available elements from different sources...' },
+                    { notation: 'SE', meaning: 'Special Edition.' },
+                    { notation: 'CE', meaning: 'Collector\'s Edition.' },
+                    { notation: 'UE', meaning: 'Ultimate Edition.' },
+                    { notation: 'AE', meaning: 'Anniversary Edition.' },
+                    { notation: 'FS', meaning: 'Fullscreen: The video is formatted for older 4:3 aspect ratio screens...' },
+                    { notation: 'WS', meaning: 'Widescreen: The video is presented in its original theatrical aspect ratio...' },
+                    { notation: 'OAR', meaning: 'Original Aspect Ratio: The film is presented in the exact aspect ratio it was framed and shot for...' },
+                    { notation: 'OPEN MATTE', meaning: 'A version where the theatrical mattes have been removed to reveal the full film frame...' },
+                    { notation: 'FINAL CUT', meaning: 'The definitive and final version of the film, as approved by the director...' },
+                    { notation: 'CRITERION', meaning: 'A release from The Criterion Collection...' },
+                    { notation: 'V1', meaning: 'Version 1' },
+                    { notation: 'V2', meaning: 'Version 2' },
+                    { notation: 'V3', meaning: 'Version 3' }
+                ]
+            },
+            {
+                category: 'Video',
+                terms: [
+                    { notation: 'X264', meaning: 'A widely used software library for encoding video into the H.264/AVC compression format...' },
+                    { notation: 'X265', meaning: 'A widely used software library for encoding video into the H.265/HEVC compression format...' },
+                    { notation: 'H264', meaning: 'H.264 / AVC (Advanced Video Coding): A very common and widely supported video compression standard...' },
+                    { notation: 'H 264', meaning: 'H.264 / AVC (Advanced Video Coding): A very common and widely supported video compression standard...' },
+                    { notation: 'H265', meaning: 'H.265 / HEVC (High Efficiency Video Coding): A newer video compression standard...' },
+                    { notation: 'HEVC', meaning: 'H.265 / HEVC (High Efficiency Video Coding): A newer video compression standard...' },
+                    { notation: 'AVC', meaning: 'H.264 / AVC (Advanced Video Coding): A very common and widely supported video compression standard...' },
+                    { notation: 'XVID', meaning: 'An older, open-source video codec based on the MPEG-4 standard...' },
+                    { notation: 'DIVX', meaning: 'An older, proprietary video codec similar to XviD...' },
+                    { notation: 'AV1', meaning: 'A modern, open, royalty-free video codec developed for efficient internet streaming...' },
+                    { notation: 'VP9', meaning: 'An open and royalty-free video codec developed by Google...' },
+                    { notation: 'MPEG2', meaning: 'An older but still important video codec...' },
+                    { notation: 'VC1', meaning: 'A video codec developed by Microsoft...' },
+                    { notation: 'HDR', meaning: 'High Dynamic Range: A video technology that provides a much wider range of colors and contrast...' },
+                    { notation: 'HDR10', meaning: 'The most common open standard for HDR content...' },
+                    { notation: 'HDR10+', meaning: 'An advanced, royalty-free version of HDR10 that supports "dynamic metadata"...' },
+                    { notation: 'HDR10 PLUS', meaning: 'An advanced, royalty-free version of HDR10 that supports "dynamic metadata"...' },
+                    { notation: 'DV', meaning: 'Dolby Vision: A proprietary, advanced HDR format that uses "dynamic metadata"...' },
+                    { notation: 'DOLBY VISION', meaning: 'Dolby Vision: A proprietary, advanced HDR format that uses "dynamic metadata"...' },
+                    { notation: 'SDR', meaning: 'Standard Dynamic Range: The default color and brightness range for all non-HDR content...' },
+                    { notation: 'HLG', meaning: 'Hybrid Log-Gamma: An HDR standard designed for broadcast television...' },
+                    { notation: '10BIT', meaning: '10-bit color depth: The video can display over one billion distinct colors...' },
+                    { notation: '8BIT', meaning: '8-bit color depth: The standard for most SDR content...' },
+                    { notation: 'REMUX', meaning: 'A file containing the original, uncompressed video and audio streams taken directly from a source like a Blu-ray...' }
+                ]
+            },
+            {
+                category: '3D Video',
+                terms: [
+                    { notation: '3D', meaning: 'Indicates the video is in a stereoscopic 3D format...' },
+                    { notation: 'HSBS', meaning: 'Half Side-by-Side: A 3D format where the left and right eye images are squeezed horizontally...' },
+                    { notation: 'HOU', meaning: 'Half Over-Under: A 3D format where the left and right eye images are squeezed vertically...' },
+                    { notation: 'FSBS', meaning: 'Full Side-by-Side: A 3D format where the full-resolution left and right eye images are placed next to each other...' },
+                    { notation: 'FOU', meaning: 'Full Over-Under: A 3D format where the full-resolution left and right eye images are placed one on top of the other...' },
+                    { notation: 'MVC', meaning: 'Multiview Video Coding: The high-quality video codec standard used for encoding 3D video on Blu-ray discs...' },
+                    { notation: 'Anaglyph', meaning: 'A 3D format that uses two different colors to create a 3D effect...' }
+                ]
+            },
+            {
+                category: 'Audio',
+                terms: [
+                    { notation: 'DTS-HD MA', meaning: 'DTS-HD Master Audio: A lossless, high-resolution audio codec...' },
+                    { notation: 'DTS-HD', meaning: 'DTS-HD High Resolution Audio: A "lossy" but still very high-quality audio codec...' },
+                    { notation: 'DTS-X', meaning: 'DTS:X: An "object-based" audio codec, similar to Dolby Atmos...' },
+                    { notation: 'DTS-ES', meaning: 'An extension of the standard DTS format that adds a center-surround channel...' },
+                    { notation: 'DTS', meaning: 'Digital Theater Systems: A common "lossy" multi-channel audio codec...' },
+                    { notation: 'ATMOS', meaning: 'Dolby Atmos: An "object-based" surround sound format that adds height channels...' },
+                    { notation: 'TRUEHD', meaning: 'Dolby TrueHD: A lossless, high-resolution audio codec developed by Dolby Labs...' },
+                    { notation: 'DDP', meaning: 'Dolby Digital Plus (E-AC-3): An advanced, "lossy" audio codec...' },
+                    { notation: 'DD+', meaning: 'Dolby Digital Plus (E-AC-3): An advanced, "lossy" audio codec...' },
+                    { notation: 'DDP7 1', meaning: 'Dolby Digital Plus 7.1: An advanced multi-channel audio format from Dolby...' },
+                    { notation: 'DDP5 1', meaning: 'Dolby Digital Plus 5.1: A common multi-channel audio format from Dolby...' },
+                    { notation: 'DDP2 0', meaning: 'Dolby Digital Plus 2.0: A stereo audio format from Dolby...' },
+                    { notation: 'DD', meaning: 'Dolby Digital (AC-3): A common "lossy" surround sound format...' },
+                    { notation: 'AC3', meaning: 'The technical name for the Dolby Digital audio codec...' },
+                    { notation: 'EAC3', meaning: 'Enhanced AC-3: The technical name for the Dolby Digital Plus (DDP) audio codec...' },
+                    { notation: 'AAC', meaning: 'Advanced Audio Coding: A "lossy" audio format that is generally more efficient and higher quality than MP3...' },
+                    { notation: 'FLAC', meaning: 'Free Lossless Audio Codec: A lossless audio compression format...' },
+                    { notation: 'PCM', meaning: 'Pulse-Code Modulation: A digital representation of a raw analog audio signal...' },
+                    { notation: 'LPCM', meaning: 'Linear Pulse-Code Modulation: An uncompressed audio format...' },
+                    { notation: 'MP3', meaning: 'A very common "lossy" audio format...' },
+                    { notation: 'OPUS', meaning: 'A highly efficient, open-source, "lossy" audio codec...' },
+                    { notation: 'VORBIS', meaning: 'An open-source, "lossy" audio codec...' },
+                    { notation: 'MA', meaning: 'Master Audio, a shorthand that is almost always part of the "DTS-HD MA" tag...' },
+                    { notation: '7.1', meaning: 'A surround sound setup with 8 channels...' },
+                    { notation: '6.1', meaning: 'A surround sound setup with 7 channels...' },
+                    { notation: '5.1', meaning: 'The most common surround sound setup with 6 channels...' },
+                    { notation: '5 1', meaning: 'The most common surround sound setup with 6 channels...' },
+                    { notation: '5.0', meaning: 'A surround sound setup with 5 channels...' },
+                    { notation: '4.0', meaning: 'Quadraphonic sound, a setup with four channels...' },
+                    { notation: '2.2', meaning: 'A stereo setup with two main speaker channels and two dedicated subwoofer channels...' },
+                    { notation: '2.1', meaning: 'A stereo setup with two main speaker channels and one dedicated subwoofer channel...' },
+                    { notation: '2.0', meaning: 'Standard two-channel stereo sound...' },
+                    { notation: '1.0', meaning: 'Single-channel monaural sound...' },
+                    { notation: 'MONO', meaning: 'Single-channel monaural sound...' },
+                    { notation: 'STEREO', meaning: 'Standard two-channel stereo sound...' },
+                    { notation: 'DUAL-AUDIO', meaning: 'Indicates the file contains two separate, complete audio tracks...' },
+                    { notation: 'DUAL', meaning: 'Indicates the file contains two separate, complete audio tracks...' },
+                    { notation: 'COMMENTARY', meaning: 'Indicates the file includes a separate audio track containing commentary...' },
+                    { notation: 'LiNE', meaning: 'Indicates a direct audio capture from a high-quality source...' }
+                ]
+            },
+            {
+                category: 'Subtitles',
+                terms: [
+                    { notation: 'SUBBED', meaning: 'Hardcoded Subtitles: The subtitles are permanently burned into the video image...' },
+                    { notation: 'HC', meaning: 'Hardcoded Subtitles: The subtitles are permanently burned into the video image...' },
+                    { notation: 'SUBS', meaning: 'Soft Subtitles: The subtitles are included as a separate, selectable track...' },
+                    { notation: 'SOFTSUBS', meaning: 'Soft Subtitles: The subtitles are included as a separate, selectable track...' },
+                    { notation: 'MULTISUB', meaning: 'Multiple Subtitles: Indicates that the file includes soft subtitle tracks in several different languages...' },
+                    { notation: 'MULTI-SUBS', meaning: 'Multiple Subtitles: Indicates that the file includes soft subtitle tracks in several different languages...' },
+                    { notation: 'FORCED', meaning: 'Forced Subtitles: These subtitles are designed to appear automatically only during scenes...' },
+                    { notation: 'SDH', meaning: 'Subtitles for the Deaf and Hard of Hearing: These subtitles include not only the dialogue...' },
+                    { notation: 'VOBSUB', meaning: 'An image-based subtitle format ripped from a DVD...' },
+                    { notation: 'PGS', meaning: 'Presentation Graphic Stream: An image-based subtitle format ripped from a Blu-ray disc...' },
+                    { notation: 'SRT', meaning: 'SubRip: A simple, widely compatible, and very common text-based subtitle format...' },
+                    { notation: 'ASS', meaning: 'Advanced SubStation Alpha: A powerful text-based subtitle format...' },
+                    { notation: 'SSA', meaning: 'SubStation Alpha: An earlier version of the ASS subtitle format...' }
+                ]
+            },
+            {
+                category: 'Language',
+                terms: [
+                    { notation: 'MULTi', meaning: 'Multiple Languages: Indicates the release contains audio tracks for two or more languages...' },
+                    { notation: 'DUAL AUDIO', meaning: 'Indicates the file contains two separate audio tracks...' },
+                    { notation: 'TRUEFRENCH', meaning: 'A genuine French audio track...' },
+                    { notation: 'VFF', meaning: 'Version Française de France: The audio track is in the French language as spoken in France...' },
+                    { notation: 'VFQ', meaning: 'Version Française Québécoise: The audio track is in the French language as spoken in Quebec...' },
+                    { notation: 'VOSTFR', meaning: 'Version Originale Sous-Titrée Français: The audio is in its original language...' },
+                    { notation: 'ENG', meaning: 'English' },
+                    { notation: 'JPN', meaning: 'Japanese' },
+                    { notation: 'FRE', meaning: 'French' },
+                    { notation: 'FRENCH', meaning: 'French' },
+                    { notation: 'GER', meaning: 'German' },
+                    { notation: 'ITA', meaning: 'Italian' },
+                    { notation: 'SPA', meaning: 'Spanish' },
+                    { notation: 'LATINO', meaning: 'Latin American Spanish' },
+                    { notation: 'POR', meaning: 'Portuguese' },
+                    { notation: 'RUS', meaning: 'Russian' },
+                    { notation: 'KOR', meaning: 'Korean' },
+                    { notation: 'CHI', meaning: 'Chinese' },
+                    { notation: 'MAN', meaning: 'Mandarin Chinese' },
+                    { notation: 'CAN', meaning: 'Cantonese Chinese' },
+                    { notation: 'HIN', meaning: 'Hindi' },
+                    { notation: 'SWE', meaning: 'Swedish' },
+                    { notation: 'NOR', meaning: 'Norwegian' },
+                    { notation: 'FIN', meaning: 'Finnish' },
+                    { notation: 'DAN', meaning: 'Danish' },
+                    { notation: 'POL', meaning: 'Polish' },
+                    { notation: 'DUT', meaning: 'Dutch' },
+                    { notation: 'HEB', meaning: 'Hebrew' },
+                    { notation: 'ARA', meaning: 'Arabic' },
+                    { notation: 'TUR', meaning: 'Turkish' },
+                    { notation: 'LAT', meaning: 'Latin' },
+                    { notation: 'NORDIC', meaning: 'Nordic Languages (SE/DK/NO/FI)' },
+                    { notation: 'AFR', meaning: 'Afrikaans' },
+                    { notation: 'ALB', meaning: 'Albanian' },
+                    { notation: 'ARM', meaning: 'Armenian' },
+                    { notation: 'BAQ', meaning: 'Basque' },
+                    { notation: 'BEN', meaning: 'Bengali' },
+                    { notation: 'BOS', meaning: 'Bosnian' },
+                    { notation: 'BUL', meaning: 'Bulgarian' },
+                    { notation: 'CAT', meaning: 'Catalan' },
+                    { notation: 'CRO', meaning: 'Croatian' },
+                    { notation: 'CZE', meaning: 'Czech' },
+                    { notation: 'EST', meaning: 'Estonian' },
+                    { notation: 'FAR', meaning: 'Faroese' },
+                    { notation: 'FIL', meaning: 'Filipino' },
+                    { notation: 'GEO', meaning: 'Georgian' },
+                    { notation: 'GRE', meaning: 'Greek' },
+                    { notation: 'HUN', meaning: 'Hungarian' },
+                    { notation: 'ICE', meaning: 'Icelandic' },
+                    { notation: 'IND', meaning: 'Indonesian' },
+                    { notation: 'IRI', meaning: 'Irish' },
+                    { notation: 'LAV', meaning: 'Latvian' },
+                    { notation: 'LIT', meaning: 'Lithuanian' },
+                    { notation: 'MAC', meaning: 'Macedonian' },
+                    { notation: 'MAY', meaning: 'Malay' },
+                    { notation: 'MAL', meaning: 'Malayalam' },
+                    { notation: 'PER', meaning: 'Persian (Farsi)' },
+                    { notation: 'RUM', meaning: 'Romanian' },
+                    { notation: 'SCC', meaning: 'Serbian' },
+                    { notation: 'SLO', meaning: 'Slovak' },
+                    { notation: 'SLV', meaning: 'Slovenian' },
+                    { notation: 'SWA', meaning: 'Swahili' },
+                    { notation: 'TAM', meaning: 'Tamil' },
+                    { notation: 'TEL', meaning: 'Telugu' },
+                    { notation: 'THA', meaning: 'Thai' },
+                    { notation: 'UKR', meaning: 'Ukrainian' },
+                    { notation: 'URD', meaning: 'Urdu' },
+                    { notation: 'VIE', meaning: 'Vietnamese' },
+                    { notation: 'WEL', meaning: 'Welsh' },
+                    { notation: 'YID', meaning: 'Yiddish' }
+                ]
+            },
+            {
+                category: 'Platform/Source',
+                terms: [
+                    { notation: 'NF', source: 'Netflix' },
+                    { notation: 'AMZN', source: 'Amazon Prime Video' },
+                    { notation: 'DSNP', source: 'Disney+' },
+                    { notation: 'HMAX', source: 'Max (formerly HBO Max)' },
+                    { notation: 'MAX', source: 'Max' },
+                    { notation: 'HBO', source: 'HBO' },
+                    { notation: 'HULU', source: 'Hulu' },
+                    { notation: 'ATVP', source: 'Apple TV+' },
+                    { notation: 'PCOK', source: 'Peacock' },
+                    { notation: 'PMTP', source: 'Paramount+' },
+                    { notation: 'CR', source: 'Crunchyroll' },
+                    { notation: 'iP', source: 'BBC iPlayer' },
+                    { notation: 'iT', source: 'iTunes' },
+                    { notation: 'GPLAY', source: 'Google Play' },
+                    { notation: 'YT', source: 'YouTube' },
+                    { notation: 'ROKU', source: 'The Roku Channel' },
+                    { notation: 'STAN', source: 'Stan (Australia)' },
+                    { notation: 'CRAV', source: 'Crave (Canada)' }
+                ]
+            },
+            {
+                category: 'Container',
+                terms: [
+                    { notation: 'MKV', meaning: 'Matroska Video: A flexible, open-standard container format...' },
+                    { notation: 'MP4', meaning: 'MPEG-4 Part 14: A very common container format...' },
+                    { notation: 'AVI', meaning: 'Audio Video Interleave: An older container format developed by Microsoft...' },
+                    { notation: 'TS', meaning: 'Transport Stream: A container format designed for digital broadcasting...' },
+                    { notation: 'M2TS', meaning: 'MPEG-2 Transport Stream: The standard container format used for high-definition video on Blu-ray discs...' },
+                    { notation: 'VOB', meaning: 'Video Object: The standard container format for video, audio, subtitles, and menu content on a DVD...' },
+                    { notation: 'MOV', meaning: 'An audio/video container format developed by Apple for its QuickTime framework...' },
+                    { notation: 'WMV', meaning: 'Windows Media Video: A container format developed by Microsoft...' },
+                    { notation: 'FLV', meaning: 'Flash Video: An older container format designed for delivering video over the internet...' },
+                    { notation: 'WEBM', meaning: 'A modern, open-standard container format designed specifically for web video...' }
+                ]
+            },
+            {
+                category: 'Release Info',
+                terms: [
+                    { notation: 'REPACK', meaning: 'A corrected version of a previous release from the same group...' },
+                    { notation: 'PROPER', meaning: 'A corrected release from a different group...' },
+                    { notation: 'INTERNAL', meaning: 'An internal release intended only for the members of a specific release group...' },
+                    { notation: 'LIMITED', meaning: 'A release that is intended for a limited audience...' },
+                    { notation: 'READNFO', meaning: 'A tag advising the user to read the included .nfo (information) file...' },
+                    { notation: 'NFOFIX', meaning: 'Indicates that a previous release had an error in its .nfo file...' },
+                    { notation: 'DIRFIX', meaning: 'Indicates that a previous release had an error in its directory name...' },
+                    { notation: 'SYNCFIX', meaning: 'Indicates that a previous release had an audio/video synchronization issue...' },
+                    { notation: 'SUBFIX', meaning: 'Indicates that a previous release had a problem with its subtitles...' },
+                    { notation: 'iNTERNAL', meaning: 'An alternate, stylized spelling for INTERNAL...' },
+                    { notation: 'COMPLETE', meaning: 'Indicates the release contains the full, untouched source material...' },
+                    { notation: 'FASTSUB', meaning: 'A release that includes quickly-made subtitles...' }
+                ]
+            },
+            {
+                category: 'Video Standard',
+                terms: [
+                    { notation: 'NTSC', meaning: 'The analog television standard historically used in North America...' },
+                    { notation: 'PAL', meaning: 'The analog television standard historically used in most of Europe...' },
+                    { notation: 'SECAM', meaning: 'A television standard first used in France, Russia, and parts of Africa...' }
+                ]
+            }
+        ];
+
+        const masterTermList = dataDictionaries.flatMap(dict =>
+            dict.terms.flatMap(term =>
+                (term.labels || [term.notation]).map(label => ({
+                    label: label.toUpperCase(),
+                    component: label,
+                    type: dict.category,
+                    meaning: term.meaning || term.description || `Source: ${term.source}`
+                }))
+            )
+        ).sort((a, b) => b.label.length - a.label.length);
+
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const input = document.getElementById('fileNameInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+
+        analyzeBtn.addEventListener('click', analyzeFileName);
+        input.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                analyzeFileName();
+            }
+        });
+
+        function analyzeFileName() {
+            const originalFileName = input.value;
+            if (!originalFileName.trim()) {
+                resultsContainer.innerHTML = `<div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md shadow" role="alert"><p class="font-bold">Please enter a file name to analyze.</p></div>`;
+                return;
+            }
+
+            let releaseGroup = '';
+            let fileName = originalFileName;
+            const groupMatch = fileName.match(/-([a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])$/);
+            if (groupMatch) {
+                releaseGroup = groupMatch[1];
+                fileName = fileName.replace(groupMatch[0], '');
+            }
+
+            let cleanedFileName = fileName.replace(/[._\[\]()]/g, ' ').replace(/\s+/g, ' ').trim();
+            let tokens = cleanedFileName.split(' ');
+            let results = [];
+            let i = 0;
+
+            while (i < tokens.length) {
+                let matched = false;
+                for (let j = 4; j >= 1; j--) {
+                    if (i + j > tokens.length) continue;
+                    let phrase = tokens.slice(i, i + j).join(' ');
+                    let term = masterTermList.find(t => t.label === phrase.toUpperCase());
+                    if (term) {
+                        results.push({ ...term, component: phrase });
+                        i += j;
+                        matched = true;
+                        break;
+                    }
+                }
+                if (matched) continue;
+
+                let token = tokens[i];
+                let meaning = '';
+                const year = parseInt(token);
+                if (/^\d{4}$/.test(token) && year > 1880 && year < new Date().getFullYear() + 5) {
+                    meaning = 'Likely Year of Release';
+                } else if (/^(8K|4K|4320p|2160p|1080p|1080i|720p|576p|576i|480p|480i|360p)$/i.test(token)) {
+                    meaning = `Video Resolution (${token.endsWith('i') ? 'interlaced' : 'progressive'})`;
+                } else if (/^S(\d{1,3})$/i.test(token)) {
+                    meaning = `Season ${parseInt(token.substring(1), 10)}`;
+                } else if (/^S(\d{1,3})E(\d{1,3})$/i.test(token)) {
+                    const match = token.toUpperCase().match(/^S(\d{1,3})E(\d{1,3})$/);
+                    meaning = `Season ${parseInt(match[1], 10)}, Episode ${parseInt(match[2], 10)}`;
+                } else if (/^(\d{1,3})x(\d{1,3})$/i.test(token)) {
+                    const match = token.toUpperCase().match(/^(\d{1,3})x(\d{1,3})$/);
+                    meaning = `Season ${parseInt(match[1], 10)}, Episode ${parseInt(match[2], 10)}`;
+                }
+
+                if (meaning) {
+                    results.push({ component: token, type: 'Heuristic', meaning: meaning });
+                } else {
+                    results.push({ component: token, type: 'Title / Other', meaning: 'Part of the title or an unrecognized tag.' });
+                }
+                i++;
+            }
+
+            if (releaseGroup) {
+                results.push({ component: releaseGroup, type: 'Release Group', meaning: 'The group that released the file.' });
+            }
+
+            displayResults(results, originalFileName);
+        }
+
+        function displayResults(results, originalName) {
+            resultsContainer.innerHTML = '';
+            const filteredResults = results.filter(res => res.type !== 'Title / Other');
+
+            if (filteredResults.length === 0) {
+                resultsContainer.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-md fade-in"><h2 class="text-2xl font-bold mb-4 text-gray-800">No specific components found</h2><p>Could not identify any special tags in "<strong>${originalName}</strong>". This is likely the title.</p></div>`;
+                return;
+            }
+
+            const resultsEl = document.createElement('div');
+            resultsEl.className = 'bg-white p-6 rounded-xl shadow-lg fade-in';
+            resultsEl.innerHTML = `<div class="mb-5 p-4 bg-gray-50 rounded-lg border border-gray-200"><p class="text-sm text-gray-600">Analysis for:</p><p class="text-lg font-mono text-gray-800 break-all mt-1">${originalName}</p></div>`;
+
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'overflow-x-auto';
+            const table = document.createElement('table');
+            table.className = 'w-full text-left border-collapse';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th class="p-3 bg-gray-100 font-semibold text-sm text-gray-700 border-b-2 border-gray-200 rounded-tl-lg">Component</th>
+                        <th class="p-3 bg-gray-100 font-semibold text-sm text-gray-700 border-b-2 border-gray-200">Category</th>
+                        <th class="p-3 bg-gray-100 font-semibold text-sm text-gray-700 border-b-2 border-gray-200 rounded-tr-lg">Meaning</th>
+                    </tr>
+                </thead>
+            `;
+
+            const tbody = document.createElement('tbody');
+            filteredResults.forEach(res => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-200 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="p-3 font-mono text-indigo-600">${res.component}</td>
+                    <td class="p-3 text-gray-800 font-medium">${res.type}</td>
+                    <td class="p-3 text-gray-600">${res.meaning}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+            resultsEl.appendChild(tableContainer);
+            resultsContainer.appendChild(resultsEl);
+        }
+    </script>
+</body>
+</html>
